@@ -22,14 +22,16 @@ export default function Gallery() {
             controls.start({
                 rotateY: 360,
                 transition: {
-                    duration: 20,
+                    duration: 25,
                     repeat: Infinity,
                     ease: "linear"
                 }
             });
         };
 
-        startRotation();
+        // Delay start để tránh conflict với opening animation
+        const timer = setTimeout(startRotation, 3000);
+        return () => clearTimeout(timer);
     }, [controls]);
 
     return (
@@ -38,7 +40,7 @@ export default function Gallery() {
             <div className="mt-16 flex justify-center">
                 <div
                     ref={containerRef}
-                    className="relative w-96 h-96 sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px]"
+                    className="relative w-96 h-96 sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px] overflow-hidden"
                     style={{ perspective: "1200px" }}
                 >
                     <motion.div
@@ -49,25 +51,27 @@ export default function Gallery() {
                         {images.map((src, idx) => {
                             const angle = (360 / images.length) * idx;
                             return (
-                                <motion.div
+                                <div
                                     key={idx}
-                                    className="absolute w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 cursor-pointer"
+                                    className="absolute w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 cursor-pointer overflow-hidden"
                                     style={{
-                                        transform: `rotateY(${angle}deg) translateZ(300px)`,
-                                        transformOrigin: "center center",
-                                        transformStyle: "preserve-3d"
+                                        transform: `rotateY(${angle}deg) translateZ(400px)`,
+                                        transformOrigin: "50% 50% 0",
+                                        transformStyle: "preserve-3d",
+                                        willChange: "transform"
                                     }}
-                                    whileHover={{ scale: 1.15, z: 100 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    transition={{ duration: 0.3 }}
-                                    onClick={() => setSelectedImage(src)}
+                                    onClick={() => {
+                                        // Pause rotation when opening modal
+                                        controls.stop();
+                                        setSelectedImage(src);
+                                    }}
                                 >
                                     <img
                                         src={src}
                                         alt={`Gallery ${idx + 1}`}
-                                        className="w-full h-full rounded-xl object-cover shadow-2xl border-4 border-white"
+                                        className="w-full h-full rounded-xl object-cover shadow-2xl border-4 border-white transition-transform duration-300 hover:scale-110"
                                     />
-                                </motion.div>
+                                </div>
                             );
                         })}
                     </motion.div>
@@ -81,24 +85,52 @@ export default function Gallery() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-                        onClick={() => setSelectedImage(null)}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+                        onClick={() => {
+                            setSelectedImage(null);
+                            // Resume rotation after closing modal
+                            setTimeout(() => {
+                                controls.start({
+                                    rotateY: 360,
+                                    transition: {
+                                        duration: 25,
+                                        repeat: Infinity,
+                                        ease: "linear"
+                                    }
+                                });
+                            }, 100);
+                        }}
                     >
                         <motion.div
-                            initial={{ scale: 0.5, opacity: 0 }}
+                            initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.5, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="relative max-w-4xl max-h-[90vh] mx-4"
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="relative max-w-5xl max-h-[90vh] mx-4"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <img
                                 src={selectedImage}
                                 alt="Gallery zoom"
                                 className="w-full h-full object-contain rounded-lg shadow-2xl"
+                                loading="eager"
                             />
                             <button
-                                onClick={() => setSelectedImage(null)}
+                                onClick={() => {
+                                    setSelectedImage(null);
+                                    // Resume rotation after closing modal
+                                    setTimeout(() => {
+                                        controls.start({
+                                            rotateY: 360,
+                                            transition: {
+                                                duration: 25,
+                                                repeat: Infinity,
+                                                ease: "linear"
+                                            }
+                                        });
+                                    }, 100);
+                                }}
                                 className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white text-xl font-bold transition-colors"
                             >
                                 ×

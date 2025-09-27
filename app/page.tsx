@@ -7,6 +7,7 @@ import Gallery from "./components/Gallery";
 import Location from "./components/Location";
 import RSVP from "./components/RSVP";
 import OpeningCard from "./components/OpeningCard";
+import AudioPlayer from "./components/AudioPlayer";
 
 export default function Home() {
   const [opened, setOpened] = useState(false);
@@ -42,6 +43,8 @@ export default function Home() {
         © {new Date().getFullYear()} By Octotech. Hẹn gặp bạn trong ngày vui!
       </footer>
 
+      {/* Audio Player */}
+      <AudioPlayer />
 
     </div>
   );
